@@ -1,0 +1,428 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Dive Maker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Unbounded:wght@600;800&display=swap">
+<style id="app-style">
+/* Layout: one left-aligned column, a horizontal sounding line (0 to 7,000 m) that deepens as you score. */
+:root{
+  --bg:#E8EFF1; --surface:#F5F9FA; --fg:#0A2733; --muted:#4A6571; --line:#B7CBD1;
+  --accent:#CF3D18; --on-accent:#FFFFFF; --danger:#B3261E;
+  --w1:#8FD6E0; --w2:#1F6A97; --w3:#0B2358;
+  --t-plankton:#5C7983; --t-clever:#7F5CB0; --t-schooler:#17837F; --t-rare:#2A66C9; --t-deep:#4A3DBA; --t-gem:#D2461F;
+  --f-display:"Unbounded","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#06161E; --surface:#0C2430; --fg:#E4F1F3; --muted:#8FAAB4; --line:#1E3F4C;
+  --accent:#FF6A3D; --on-accent:#1B0A03; --danger:#FF8A80;
+  --w1:#4FB7CC; --w2:#1D6FA3; --w3:#2A3F9A;
+  --t-plankton:#8FAAB4; --t-clever:#B79AE0; --t-schooler:#4FC3C0; --t-rare:#6FA3FF; --t-deep:#9A8CFF; --t-gem:#FF7A52;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#06161E; --surface:#0C2430; --fg:#E4F1F3; --muted:#8FAAB4; --line:#1E3F4C;
+  --accent:#FF6A3D; --on-accent:#1B0A03; --danger:#FF8A80;
+  --w1:#4FB7CC; --w2:#1D6FA3; --w3:#2A3F9A;
+  --t-plankton:#8FAAB4; --t-clever:#B79AE0; --t-schooler:#4FC3C0; --t-rare:#6FA3FF; --t-deep:#9A8CFF; --t-gem:#FF7A52;
+  color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5}
+*{box-sizing:border-box}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+.mono{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-mono);font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.tabs{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.tabs a{padding:6px 16px;text-decoration:none;font-weight:600;font-size:.9rem;background:var(--surface)}
+.tabs a.on{background:var(--fg);color:var(--bg)}
+h1,h2,h3{text-wrap:balance;margin:0}
+.hero{padding-block:36px 8px;display:grid;gap:16px;justify-items:start}
+.hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.9rem,6.4vw,3.1rem);line-height:1.06;letter-spacing:-.025em}
+.tag{margin:0;max-width:56ch;font-size:1.08rem;color:var(--muted)}
+.btn{font:600 1rem var(--f-body);border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:4px;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.big{padding:14px 28px;font-size:1.05rem}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.sm{padding:5px 11px;font-size:.82rem}
+.note{margin:14px 0 0;padding:10px 12px;border:1px solid var(--line);background:var(--surface);border-radius:4px;font-size:.9rem}
+.ladder{margin-top:28px;border:1px solid var(--line);border-radius:4px;background:var(--surface);overflow:hidden}
+.ladder h2{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line);font-weight:500}
+.rung{display:grid;grid-template-columns:minmax(0,1.3fr) 4.5rem 5.5rem;gap:10px;align-items:baseline;padding:10px 14px;border-bottom:1px solid var(--line)}
+.rung:last-child{border-bottom:0}
+.rung small{grid-column:1/-1;color:var(--muted);margin-top:-6px}
+.rung .num{font-family:var(--f-mono);font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}
+.badge{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.badge i{width:11px;height:11px;background:var(--c);flex:none}
+.gauge{display:grid;gap:8px;margin-top:22px}
+.gtop{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.gnum{font-family:var(--f-display);font-weight:600;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.track{position:relative;height:20px;border:1px solid var(--line);border-radius:3px;background:var(--surface);overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--w1),var(--w2) 50%,var(--w3));transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.track::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(14.2857% - 1px),var(--bg) calc(14.2857% - 1px),var(--bg) 14.2857%);opacity:.55;pointer-events:none}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;margin-top:30px}
+.tline{height:4px;background:var(--line);margin-top:8px;border-radius:2px;overflow:hidden}
+.tline i{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(1)}
+.q{font-family:var(--f-display);font-weight:600;font-size:clamp(1.4rem,4.8vw,2.1rem);line-height:1.18;letter-spacing:-.02em;margin:22px 0 18px}
+.ask{display:flex;gap:10px;flex-wrap:wrap}
+input[type=text],input[type=number],textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:96px;font-family:var(--f-mono);font-size:.85rem;line-height:1.45}
+.ask input{flex:1 1 220px;width:auto;font-size:1.15rem;padding:12px 14px}
+.hint{color:var(--muted);font-size:.88rem;margin:10px 0 0}
+.result{margin-top:26px;padding:16px;border:1px solid var(--line);border-left:6px solid var(--c);background:var(--surface);border-radius:4px;display:grid;gap:6px}
+.result .pts{font-family:var(--f-display);font-weight:800;font-size:2rem;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.result p{margin:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.recap{margin-top:24px;display:grid;border:1px solid var(--line);border-radius:4px;background:var(--surface);overflow:hidden}
+.rrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.rrow .qq{font-weight:600}
+.rrow .aa{color:var(--muted);font-size:.9rem;grid-column:1/-1;overflow-wrap:anywhere}
+.rrow .pp{font-family:var(--f-mono);font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}
+.final{margin-top:30px}
+.final .big{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,10vw,4.2rem);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.sec{margin-top:26px;display:grid;gap:14px}
+.sec h2{font-family:var(--f-display);font-size:1.05rem;font-weight:600;letter-spacing:-.01em}
+.fld{display:grid;gap:6px;min-width:0}
+.fld label,.fld .lab{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fld .lab em{font-style:normal;color:var(--fg)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) 9rem;gap:14px}
+.pcard{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:14px;display:grid;gap:14px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.phead .tools{display:flex;gap:6px;flex-wrap:wrap}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.tiers .fld .lab{display:flex;align-items:center;gap:8px}
+.tiers .fld .lab i{width:10px;height:10px;background:var(--c);flex:none}
+.pubbar{position:sticky;bottom:0;margin-top:28px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.pubbar p{margin:0}
+.err{color:var(--danger);font-size:.88rem;margin-top:4px}
+.share{margin:22px 0 0;font-size:.9rem;color:var(--muted);max-width:62ch}
+@media (max-width:520px){.rung{grid-template-columns:minmax(0,1fr) 3.5rem 4.5rem}.row2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: reduce){.fill{transition:none}}
+</style>
+<div class="wrap" id="root"></div>
+<script type="application/json" id="cfg">{"title":"BatCH Krillion","tagline":"Three prompts. The rarer the answer you land on, the deeper you go. This is a sample dive, so replace everything in Build.","secs":25,"prompts":[{"q":"Name a batch coach from the past 4 years (minimum two practices coached, first names only)","tiers":{"plankton":["mitchell","ky"],"clever":[],"schooler":["ian","brian"],"rare":["neil","akshay"],"deep":["zach","jon"],"gem":["krause"]}},{"q":"Name a play we have ran as a team this year","tiers":{"plankton":["zipper","twist"],"clever":["ho flow","vert flow"],"schooler":["flick","backhand","ali","cookies","threes"],"rare":["foreman","floyd","tyson","blueberry","strike and fill"],"deep":["lamp","loko","half zipper","oil","flood","missionary","eiffel tower","cuck chair"],"gem":["half twist | gavin's play"]}},{"q":"Name a type of ultimate frisbee stat (tracked by ultianalytics)","tiers":{"plankton":["plus minus","assists","completions","throwaways","ds","goals","catches"],"clever":["player name"],"schooler":["points played","passing percentage","drops","games played"],"rare":["o efficiency","d efficiency","catching percentage","o points","d points"],"deep":["minutes played","pulls","average pull hangtime | hangtime","OB pulls","pp goals","pp assists","pp ds","pp throwaways","pp drops"],"gem":["callahans"]}},{"q":"Location batch has played a tournament in the last four years (city name only)","tiers":{"plankton":["axton","charlotte"],"clever":[],"schooler":["wilmington","unc","chapel hill"],"rare":["richmond","raleigh"],"deep":["william and mary | williamsburg","glen allen"],"gem":["clemson"]}},{"q":"Name a term from Mitchell's glossary","tiers":{"plankton":["force","open side","break side","trap","flat"],"clever":[],"schooler":["home","away","fire","no unders","no deep","cookies"],"rare":["inside","around","wrap","shooter","last back","halo"],"deep":["flour","bingo","rondo","bang","hold","blast"],"gem":["turbo"]}},{"q":"Name a snack Mitchell has provided on the sideline","tiers":{"plankton":["pickles"],"clever":[],"schooler":["bananas","granola bars"],"rare":["apple sauce","goldfish"],"deep":["bagels"],"gem":["sour patch kids","sour patch watermelons"]}},{"q":"Name a team we have played this year (school name not nickname)","tiers":{"plankton":["app state","app","duke"],"clever":[],"schooler":["south carolina","usc","nc state","maryland","georgia tech","uncw","unc wilmington","wilmington"],"rare":["uncc","charlotte","unc charlotte","diverse city","emory","william and mary"],"deep":["davidson","unc asheville","asheville","diverse city"],"gem":["crown royale"]}}]}</script>
+<script id="app-js">
+(function(){
+"use strict";
+var FONTS="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Unbounded:wght@600;800&display=swap";
+var HEAD='<title>Dive Maker</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="'+FONTS+'">\n';
+var RESET=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}';
+
+var TIERS=[
+ {k:"plankton",name:"Plankton",pts:10,c:"var(--t-plankton)",note:"The answer everyone blurts out.",hint:"Obvious answers."},
+ {k:"clever",name:"Too Clever",pts:15,c:"var(--t-clever)",note:"Valid, but a stretch.",hint:"Valid but forced or technical."},
+ {k:"schooler",name:"Schooler",pts:30,c:"var(--t-schooler)",note:"Common, but not the first thing people say.",hint:"Second-wave answers."},
+ {k:"rare",name:"Rare",pts:60,c:"var(--t-rare)",note:"Most players will not land on this.",hint:"Needs real recall."},
+ {k:"deep",name:"Deep Cut",pts:85,c:"var(--t-deep)",note:"Specialist knowledge.",hint:"Answers only a fan or expert knows."},
+ {k:"gem",name:"One in a Krillion",pts:100,c:"var(--t-gem)",note:"The prize answer for this prompt.",hint:"The single best find."}
+];
+var ZONES=[[0,"Sunlight zone"],[200,"Twilight zone"],[1000,"Midnight zone"],[4000,"Abyssal zone"],[6000,"Hadal zone"]];
+var FLOOR=7000;
+
+function T(a){var o={};["plankton","clever","schooler","rare","deep","gem"].forEach(function(k,i){o[k]=a[i]||[]});return o}
+var EXAMPLE={
+ title:"Kitchen Table Dive",
+ tagline:"Three prompts. The rarer the answer you land on, the deeper you go. This is a sample dive, so replace everything in Build.",
+ secs:25,
+ prompts:[
+  {q:"Name a pasta shape",tiers:T([
+    ["spaghetti","penne","macaroni"],[ "noodles"],
+    ["fettuccine","linguine","rigatoni","farfalle","ravioli","fusilli","tortellini"],
+    ["orecchiette","pappardelle","gnocchi","cavatappi","ziti","orzo","conchiglie | shells"],
+    ["bucatini","paccheri","casarecce","trofie","strozzapreti","mafaldine","tagliatelle"],
+    ["corzetti | corzetti stampati"]])},
+  {q:"Name something you ride while standing up",tiers:T([
+    ["skateboard","scooter"],["subway | metro | train","bus"],
+    ["surfboard","escalator","snowboard","skis","wakeboard"],
+    ["segway","hoverboard","paddleboard","moving walkway | travelator","longboard"],
+    ["onewheel","sandboard","hydrofoil","jet ski","zipline","flowrider"],
+    ["efoil | e-foil | electric hydrofoil"]])},
+  {q:"Name a part of a ship",tiers:T([
+    ["deck","hull","mast","anchor","sail"],["porthole"],
+    ["bow","stern","rudder","bridge","helm","propeller","cabin","crows nest"],
+    ["keel","galley","bulkhead","hatch","poop deck","gangway","bilge"],
+    ["gunwale","capstan","windlass","transom","bulwark","forecastle | focsle"],
+    ["binnacle"]])}
+ ]
+};
+
+var $=function(s){return document.querySelector(s)};
+var root=$("#root");
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var clone=function(o){return JSON.parse(JSON.stringify(o))};
+
+function fix(c){
+ c=c&&typeof c==="object"?c:{};
+ c.title=typeof c.title==="string"?c.title:"Untitled dive";
+ c.tagline=typeof c.tagline==="string"?c.tagline:"";
+ c.secs=Math.min(60,Math.max(10,parseInt(c.secs,10)||25));
+ c.prompts=Array.isArray(c.prompts)?c.prompts:[];
+ c.prompts.forEach(function(p){
+  p.q=typeof p.q==="string"?p.q:"";
+  p.tiers=p.tiers&&typeof p.tiers==="object"?p.tiers:{};
+  TIERS.forEach(function(t){p.tiers[t.k]=Array.isArray(p.tiers[t.k])?p.tiers[t.k].map(String):[]});
+ });
+ return c;
+}
+
+var cfg;
+try{cfg=JSON.parse($("#cfg").textContent)}catch(e){cfg=null}
+cfg=fix(cfg&&Array.isArray(cfg.prompts)?cfg:clone(EXAMPLE));
+var draft=clone(cfg);
+var canEdit=false, view="play";
+var ui={busy:false,err:""};
+var play={phase:"intro",i:0,results:[],deadline:0,tid:0};
+
+/* draft kept in this browser only, discarded when the published dive changes */
+var DK="dive-maker-draft";
+function loadDraft(){try{var s=JSON.parse(localStorage.getItem(DK)||"null");if(s&&s.base===JSON.stringify(cfg)&&s.draft)draft=fix(s.draft)}catch(e){}}
+var saveT=0;
+function saveDraft(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem(DK,JSON.stringify({base:JSON.stringify(cfg),draft:draft}))}catch(e){}},300)}
+function dirty(){return JSON.stringify(draft)!==JSON.stringify(cfg)}
+function active(){return canEdit?draft:cfg}
+
+/* answer matching */
+function norm(s){return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/&/g," and ").replace(/['’`]/g,"").replace(/[^a-z0-9]+/g," ").trim().replace(/^(the|a|an) /,"")}
+function lev(a,b){
+ if(a===b)return 0;var m=a.length,n=b.length;if(!m)return n;if(!n)return m;
+ var prev=[],cur=[],i,j;for(j=0;j<=n;j++)prev[j]=j;
+ for(i=1;i<=m;i++){cur[0]=i;for(j=1;j<=n;j++){cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1))}var t=prev;prev=cur;cur=t}
+ return prev[n];
+}
+function judge(p,input){
+ var n=norm(input);if(!n)return null;
+ var ns=[n,n.replace(/s$/,"")],best=null;
+ TIERS.forEach(function(t){
+  (p.tiers[t.k]||[]).forEach(function(entry){
+   entry.split("|").forEach(function(alias){
+    var k=norm(alias);if(!k)return;
+    var ks=[k,k.replace(/s$/,"")],d=1e9;
+    ns.forEach(function(x){ks.forEach(function(y){d=Math.min(d,x===y?0:lev(x,y))})});
+    var lim=k.length<=4?0:k.length<=8?1:2;
+    if(d<=lim&&(!best||d<best.d||(d===best.d&&t.pts>best.t.pts)))best={t:t,d:d};
+   });
+  });
+ });
+ return best?best.t:null;
+}
+
+/* helpers */
+function meters(pts,n){return Math.round(pts*FLOOR/(Math.max(1,n)*100))}
+function fmt(n){return Number(n).toLocaleString("en-US")}
+function zone(m){var z=ZONES[0][1];ZONES.forEach(function(x){if(m>=x[0])z=x[1]});return z}
+function badge(t){return '<span class="badge" style="--c:'+t.c+'"><i></i>'+esc(t.name)+'</span>'}
+function total(){return play.results.reduce(function(a,r){return a+r.pts},0)}
+
+function gauge(pts,n){
+ var m=meters(pts,n);
+ return '<div class="gauge" aria-label="Depth"><div class="gtop"><span class="gnum"><span id="gnum">'+fmt(m)+'</span> m</span><span class="mono" id="gzone">'+zone(m)+'</span></div>'+
+ '<div class="track"><div class="fill" id="gfill" style="width:'+Math.min(100,m/FLOOR*100)+'%"></div></div>'+
+ '<div class="scale"><span>0</span><span>1k</span><span>2k</span><span>3k</span><span>4k</span><span>5k</span><span>6k</span><span>7,000 m</span></div></div>';
+}
+
+function top(){
+ return '<header class="bar"><div class="brand">Dive Maker</div>'+(canEdit?'<nav class="tabs" aria-label="Mode"><a href="#play" class="'+(view==="play"?"on":"")+'">Play</a><a href="#build" class="'+(view==="build"?"on":"")+'">Build</a></nav>':'')+'</header>';
+}
+
+/* play */
+function renderPlay(){
+ var c=active(),n=c.prompts.length,h="";
+ if(!n){return '<section class="hero"><h1>Nothing to play yet</h1><p class="tag">This dive has no prompts.</p></section>'}
+ if(canEdit&&dirty())h+='<p class="note">You are playing your unpublished draft. <a href="#build">Back to Build</a></p>';
+ if(play.phase==="intro"){
+  h+='<section class="hero"><p class="mono">'+n+' prompt'+(n===1?"":"s")+' &middot; '+c.secs+' seconds each</p><h1>'+esc(c.title)+'</h1>'+(c.tagline?'<p class="tag">'+esc(c.tagline)+'</p>':'')+'<button class="btn big" data-act="start" id="go">Start diving</button></section>';
+  h+='<section class="ladder"><h2>How the dive scores</h2>';
+  TIERS.slice().sort(function(a,b){return a.pts-b.pts}).forEach(function(t){
+   h+='<div class="rung">'+badge(t)+'<span class="num">'+t.pts+' pts</span><span class="num">+'+fmt(meters(t.pts,n))+' m</span><small>'+esc(t.note)+'</small></div>';
+  });
+  h+='<div class="rung"><span class="badge"><i style="background:var(--line)"></i>Not on the sheet</span><span class="num">0 pts</span><span class="num">+0 m</span><small>An answer the dive does not accept, or no answer in time. Small typos are forgiven.</small></div></section>';
+  return h;
+ }
+ if(play.phase==="ask"){
+  var p=c.prompts[play.i];
+  h+=gauge(total(),n);
+  h+='<div class="qhead"><span class="mono">Prompt '+(play.i+1)+' of '+n+'</span><span class="mono" id="tnum">'+c.secs.toFixed(1)+' s</span></div><div class="tline"><i id="tbar"></i></div>';
+  h+='<h2 class="q">'+esc(p.q)+'</h2><form id="af" class="ask"><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type an answer" aria-label="Your answer"><button class="btn" type="submit">Lock in</button></form><p class="err" id="miss" role="status"></p><p class="hint">Rarer answers dive deeper. Skip the first thing that comes to mind.</p>';
+  return h;
+ }
+ if(play.phase==="reveal"){
+  var r=play.results[play.results.length-1],isLast=play.i>=n-1,pp=c.prompts[play.i];
+  h+=gauge(total()-r.pts,n);
+  h+='<div class="qhead"><span class="mono">Prompt '+(play.i+1)+' of '+n+'</span></div><h2 class="q">'+esc(pp.q)+'</h2>';
+  if(r.tier){
+   h+='<div class="result" style="--c:'+r.tier.c+'">'+badge(r.tier)+'<span class="pts">+'+r.pts+' pts &middot; +'+fmt(meters(r.pts,n))+' m</span><p>'+esc(r.answer)+' &mdash; '+esc(r.tier.note)+'</p></div>';
+  }else{
+   h+='<div class="result" style="--c:var(--line)"><span class="badge">Not on the sheet</span><span class="pts">+0 pts</span><p>'+(r.answer?esc(r.answer)+' is not an answer this dive accepts.':'No answer in time.')+'</p></div>';
+  }
+  h+='<div class="actions"><button class="btn" data-act="next" id="nx">'+(isLast?"See your depth":"Next prompt")+'</button></div>';
+  return h;
+ }
+ /* end */
+ var pts=total(),m=meters(pts,n);
+ h+='<section class="final"><p class="mono">You reached</p><div class="big">'+fmt(m)+' m</div><p class="tag" style="margin-top:10px">'+zone(m)+' &middot; '+pts+' of '+(n*100)+' points</p></section>';
+ h+=gauge(pts,n).replace('class="gauge"','class="gauge" style="margin-top:18px"');
+ h+='<div class="recap">';
+ play.results.forEach(function(r,i){
+  var pr=c.prompts[i];
+  h+='<div class="rrow"><span class="qq">'+esc(pr.q)+'</span><span class="pp">'+r.pts+' pts</span><span class="aa">'+(r.tier?badge(r.tier)+' &middot; ':'Not on the sheet &middot; ')+(r.answer?esc(r.answer):'no answer')+'</span></div>';
+ });
+ h+='</div><div class="actions"><button class="btn" data-act="again" id="ag">Dive again</button><button class="btn ghost" data-act="copy" id="cp">Copy my result</button></div>';
+ return h;
+}
+
+/* build */
+function renderBuild(){
+ var d=draft,h="";
+ h+='<section class="sec"><h2>Your dive</h2><div class="row2"><div class="fld"><label for="f-title">Title</label><input type="text" id="f-title" data-f="title" value="'+esc(d.title)+'" maxlength="80"></div><div class="fld"><label for="f-secs">Seconds per prompt</label><input type="number" id="f-secs" data-f="secs" min="10" max="60" value="'+d.secs+'"></div></div>';
+ h+='<div class="fld"><label for="f-tag">Intro line</label><input type="text" id="f-tag" data-f="tagline" value="'+esc(d.tagline)+'" maxlength="240"></div></section>';
+ h+='<section class="sec"><h2>Prompts and answers</h2><p class="share" style="margin:0">Write each accepted answer on its own line. Put several spellings on one line with a bar between them, like <b>e-foil | efoil</b>. Players get points for the highest tier an answer appears in. Anything not listed scores zero.</p>';
+ d.prompts.forEach(function(p,i){
+  h+='<div class="pcard"><div class="phead"><span class="mono">Prompt '+(i+1)+'</span><span class="tools"><button class="btn ghost sm" data-act="up" data-i="'+i+'"'+(i===0?' disabled':'')+'>Move up</button><button class="btn ghost sm" data-act="down" data-i="'+i+'"'+(i===d.prompts.length-1?' disabled':'')+'>Move down</button><button class="btn ghost sm" data-act="rm" data-i="'+i+'">Remove</button></span></div>';
+  h+='<div class="fld"><label for="q'+i+'">Prompt</label><input type="text" id="q'+i+'" data-f="q" data-i="'+i+'" value="'+esc(p.q)+'" placeholder="Name a ..."></div><div class="tiers">';
+  TIERS.slice().sort(function(a,b){return a.pts-b.pts}).forEach(function(t){
+   h+='<div class="fld" style="--c:'+t.c+'"><span class="lab"><i></i><em>'+esc(t.name)+'</em> '+t.pts+' pts</span><textarea id="t'+i+t.k+'" data-f="tier" data-i="'+i+'" data-k="'+t.k+'" aria-label="'+esc(t.name)+' answers for prompt '+(i+1)+'" placeholder="'+esc(t.hint)+'">'+esc((p.tiers[t.k]||[]).join("\n"))+'</textarea></div>';
+  });
+  h+='</div></div>';
+ });
+ h+='<div class="actions" style="margin:0"><button class="btn ghost" data-act="add">Add a prompt</button><button class="btn ghost" data-act="example">Reset to the sample dive</button></div></section>';
+ h+='<p class="share">To send your dive, publish it here, then use Share in the app and copy the link. Anyone who opens the link plays your prompts and sees only the game. Only you see Build.</p>';
+ h+='<div class="pubbar"><div><p class="mono" id="dirty"></p><p class="err" id="err" role="alert"></p></div><div class="actions" style="margin:0"><a class="btn ghost" href="#play" style="text-decoration:none">Test play</a><button class="btn" data-act="publish" id="pub">Publish dive</button></div></div>';
+ return h;
+}
+function refreshBar(){
+ var a=$("#dirty"),b=$("#pub"),e=$("#err");
+ if(a)a.textContent=ui.busy?"Publishing...":(dirty()?"Unpublished changes":"Matches the live dive");
+ if(b)b.disabled=ui.busy||!dirty();
+ if(e)e.textContent=ui.err||"";
+}
+
+function render(){
+ clearInterval(play.tid);
+ root.innerHTML=top()+(view==="build"&&canEdit?renderBuild():renderPlay());
+ document.title=(active().title||"Dive Maker");
+ if(view==="build"){refreshBar();return}
+ var c=active(),n=c.prompts.length;
+ if(play.phase==="ask"){
+  var inp=$("#ans");if(inp)inp.focus();
+  play.deadline=performance.now()+c.secs*1000;
+  play.tid=setInterval(tick,100);
+ }else if(play.phase==="reveal"){
+  var r=play.results[play.results.length-1];
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+   var f=$("#gfill"),g=$("#gnum"),z=$("#gzone"),m=meters(total(),n);
+   if(f)f.style.width=Math.min(100,m/FLOOR*100)+"%";
+   if(g)g.textContent=fmt(m);
+   if(z)z.textContent=zone(m);
+  })});
+  var nx=$("#nx");if(nx)nx.focus();
+ }else if(play.phase==="intro"){var go=$("#go");if(go&&!canEdit)go.focus()}
+}
+function tick(){
+ var c=active(),left=Math.max(0,play.deadline-performance.now());
+ var bar=$("#tbar"),num=$("#tnum");
+ if(bar)bar.style.transform="scaleX("+(left/(c.secs*1000))+")";
+ if(num)num.textContent=(left/1000).toFixed(1)+" s";
+ if(left<=0){var i=$("#ans");submit((i&&i.value.trim())||play.lastMiss||"")}
+}
+function submit(text){
+ if(play.phase!=="ask")return;
+ clearInterval(play.tid);
+ var c=active(),p=c.prompts[play.i],t=judge(p,text);
+ play.results.push({answer:String(text).trim(),tier:t,pts:t?t.pts:0});play.lastMiss="";
+ play.phase="reveal";render();
+}
+
+/* publishing */
+function validate(c){
+ var e=[];
+ if(!c.title.trim())e.push("Add a title.");
+ if(!c.prompts.length)e.push("Add at least one prompt.");
+ c.prompts.forEach(function(p,i){
+  if(!p.q.trim())e.push("Prompt "+(i+1)+" needs a question.");
+  if(!TIERS.some(function(t){return (p.tiers[t.k]||[]).length}))e.push("Prompt "+(i+1)+" needs at least one accepted answer.");
+ });
+ return e;
+}
+function buildDoc(c){
+ var css=$("#app-style").textContent,js=$("#app-js").textContent;
+ var data=JSON.stringify(c).replace(/</g,"\\u003c").replace(/\u2028/g,"\\u2028").replace(/\u2029/g,"\\u2029");
+ return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+'</style></head><body>'+HEAD+'<style id="app-style">'+css+'</style>\n<div class="wrap" id="root"></div>\n<script type="application/json" id="cfg">'+data+'<\/script>\n<script id="app-js">'+js+'<\/script></body></html>';
+}
+function publish(){
+ var errs=validate(draft);
+ if(errs.length){ui.err=errs.join(" ");refreshBar();return}
+ ui.busy=true;ui.err="";refreshBar();
+ var cl=window.claude&&window.claude.use?window.claude.use("artifact"):Promise.resolve(null);
+ cl.then(function(art){
+  if(!art)throw {code:"not_granted"};
+  return art.publish(buildDoc(draft));
+ }).then(function(){
+  try{localStorage.removeItem(DK)}catch(e){}
+ }).catch(function(e){
+  ui.busy=false;
+  var code=e&&e.code;
+  ui.err=code==="conflict"?"":(code==="not_writer"||code==="not_granted"||code==="not_declared")?"This view cannot save changes. Open the page from your own account to publish.":code==="rate_limited"?"Publishing too fast. Wait a few seconds and try again.":"Publishing failed. Try again in a moment.";
+  refreshBar();
+ });
+}
+
+/* events */
+root.addEventListener("input",function(e){
+ var el=e.target,f=el.getAttribute&&el.getAttribute("data-f");if(!f||!canEdit)return;
+ var i=parseInt(el.getAttribute("data-i"),10);
+ if(f==="title")draft.title=el.value;
+ else if(f==="tagline")draft.tagline=el.value;
+ else if(f==="secs")draft.secs=Math.min(60,Math.max(10,parseInt(el.value,10)||25));
+ else if(f==="q")draft.prompts[i].q=el.value;
+ else if(f==="tier")draft.prompts[i].tiers[el.getAttribute("data-k")]=el.value.split("\n").map(function(s){return s.trim()}).filter(Boolean);
+ ui.err="";saveDraft();refreshBar();
+});
+root.addEventListener("submit",function(e){
+ if(e.target.id==="af"){e.preventDefault();var inp=$("#ans"),v=inp.value.trim();if(!v)return;if(judge(active().prompts[play.i],v)){submit(v)}else{play.lastMiss=v;inp.value="";inp.focus();var ms=$("#miss");if(ms)ms.textContent='"'+v+'" is not on the sheet. Keep trying.'}}
+});
+root.addEventListener("click",function(e){
+ var b=e.target.closest&&e.target.closest("[data-act]");if(!b)return;
+ var a=b.getAttribute("data-act"),i=parseInt(b.getAttribute("data-i"),10),n=active().prompts.length;
+ if(a==="start"||a==="again"){play={phase:"ask",i:0,results:[],deadline:0,tid:0};render()}
+ else if(a==="next"){if(play.i>=n-1){play.phase="end"}else{play.i++;play.phase="ask"}render()}
+ else if(a==="copy"){
+  var m=meters(total(),n),txt="I reached "+fmt(m)+" m ("+zone(m)+") on "+active().title+".\n"+play.results.map(function(r,i){return (i+1)+". "+(r.tier?r.tier.name:"Not on the sheet")}).join("\n");
+  var done=function(ok){b.textContent=ok?"Copied":"Select and copy: "+txt};
+  try{navigator.clipboard.writeText(txt).then(function(){done(true)},function(){done(false)})}catch(err){done(false)}
+ }
+ else if(a==="publish")publish();
+ else if(canEdit){
+  if(a==="add")draft.prompts.push({q:"",tiers:T([])});
+  else if(a==="rm")draft.prompts.splice(i,1);
+  else if(a==="up"&&i>0){var t=draft.prompts[i];draft.prompts[i]=draft.prompts[i-1];draft.prompts[i-1]=t}
+  else if(a==="down"&&i<draft.prompts.length-1){var u=draft.prompts[i];draft.prompts[i]=draft.prompts[i+1];draft.prompts[i+1]=u}
+  else if(a==="example")draft=fix(clone(EXAMPLE));
+  else return;
+  ui.err="";saveDraft();render();
+ }
+});
+function route(){
+ var h=location.hash.replace("#","");
+ var v=(h==="build"&&canEdit)?"build":"play";
+ if(v!==view||!root.firstChild){view=v;if(v==="play"&&play.phase!=="intro"&&play.phase!=="end"){}render()}
+ else render();
+}
+window.addEventListener("hashchange",function(){
+ var h=location.hash.replace("#","");
+ view=(h==="build"&&canEdit)?"build":"play";
+ if(view==="play")play={phase:"intro",i:0,results:[],deadline:0,tid:0};
+ render();
+});
+
+render();
+try{
+ var uc=window.claude&&window.claude.use?window.claude.use("user"):null;
+ if(uc)uc.then(function(u){return u?u.canEdit():false}).then(function(ok){
+  if(ok){canEdit=true;loadDraft();route()}
+ }).catch(function(){});
+}catch(e){}
+})();
+</script></body></html>
